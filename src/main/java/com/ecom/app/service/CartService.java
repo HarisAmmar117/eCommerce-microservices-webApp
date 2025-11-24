@@ -1,7 +1,6 @@
 package com.ecom.app.service;
 
 import com.ecom.app.dto.CartItemRequest;
-import com.ecom.app.dto.ProductResponse;
 import com.ecom.app.model.CartItem;
 import com.ecom.app.model.Product;
 import com.ecom.app.model.User;
@@ -74,4 +73,28 @@ public class CartService {
 
 
 
+    //implementing the remove from cart method
+    public boolean deleteItemFromCart(String userId, Long productId) {
+        //checking if the product exists
+        Optional<Product> productOpt = productRepository.findById(productId);
+        if(productOpt.isEmpty())
+            return false;
+
+        //checking if the user exists
+        Optional<User> userOpt = userRepository.findById(Long.valueOf(userId));
+        if(userOpt.isEmpty())
+            return false;
+
+        //removing the item
+        userOpt.flatMap(user->
+                productOpt.map(product ->
+                        {
+                            cartRepository.deleteByUserAndProduct(user,product);
+                            return true;
+                        }
+                )
+        );
+
+        return false;
+    }
 }
