@@ -93,5 +93,10 @@ public class ProductService {
     }
 
 
+    public List<ProductResponse> searchProducts(String keyword) {
 
+        return repository.searchProducts(keyword).stream()
+                .map(this::mapToProductResponse)
+                .collect(Collectors.toList());
+    }
 }
