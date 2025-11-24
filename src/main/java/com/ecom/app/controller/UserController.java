@@ -25,10 +25,6 @@ public class UserController {
 
         List<UserResponse> userList = userService.fetchAllUsers();
 
-        if(userList.isEmpty()){
-
-            return ResponseEntity.noContent().build();
-        }
         return new ResponseEntity<>(userList, HttpStatus.OK);
     }
 

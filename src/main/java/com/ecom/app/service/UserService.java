@@ -31,7 +31,7 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    public Optional<UserResponse> fetchSingleUser(@PathVariable Long id) {
+    public Optional<UserResponse> fetchSingleUser(Long id) {
 
         return userRepository.findById(id)
                 .map(this::mapToUserResponse);
