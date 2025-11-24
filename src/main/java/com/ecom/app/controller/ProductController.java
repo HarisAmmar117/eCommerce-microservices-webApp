@@ -3,17 +3,13 @@ package com.ecom.app.controller;
 
 import com.ecom.app.dto.ProductRequest;
 import com.ecom.app.dto.ProductResponse;
-import com.ecom.app.dto.UserResponse;
-import com.ecom.app.model.Product;
 import com.ecom.app.service.ProductService;
-import org.hibernate.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/products")
@@ -50,5 +46,12 @@ public class ProductController {
         return productService.fetchProduct(id)
                 .map(product -> ResponseEntity.ok(product))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id){
+
+        boolean deleted = productService.deleteProduct(id);
+        return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 }

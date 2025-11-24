@@ -39,6 +39,33 @@ public class ProductService {
                 });
     }
 
+    public List<ProductResponse> fetchAllProducts() {
+
+        return repository.findByActiveTrue().stream()
+                .map(this::mapToProductResponse)
+                .collect(Collectors.toList());
+
+    }
+
+    public Optional<ProductResponse> fetchProduct(Long id){
+
+        return repository.findById(id)
+                .map(this::mapToProductResponse);
+    }
+
+    public boolean deleteProduct(Long id) {
+
+        return repository.findById(id)
+                .map(product ->
+                        {
+                            product.setActive(false);
+                            repository.save(product);
+                            return true;
+                        }
+
+                        ).orElse(false);
+    }
+
     private ProductResponse mapToProductResponse(Product product) {
 
         ProductResponse response = new ProductResponse();
@@ -66,17 +93,5 @@ public class ProductService {
     }
 
 
-    public List<ProductResponse> fetchAllProducts() {
 
-        return repository.findAll().stream()
-                .map(this::mapToProductResponse)
-                .collect(Collectors.toList());
-
-    }
-
-    public Optional<ProductResponse> fetchProduct(Long id){
-
-        return repository.findById(id)
-                .map(this::mapToProductResponse);
-    }
 }
