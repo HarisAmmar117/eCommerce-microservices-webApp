@@ -1,11 +1,15 @@
 package com.ecom.app.controller;
 
 import com.ecom.app.dto.CartItemRequest;
+import com.ecom.app.dto.ProductResponse;
+import com.ecom.app.model.CartItem;
 import com.ecom.app.service.CartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/cart")
@@ -38,6 +42,16 @@ public class CartController {
         return result?ResponseEntity.noContent().build()
                 :ResponseEntity.notFound().build();
 
+
+    }
+
+    @GetMapping
+    public ResponseEntity<List<CartItem>> getAllCartItems(
+            @RequestHeader("X-User-ID") String userId
+
+            ){
+
+        return new ResponseEntity<>(cartService.fetchAllCartItems(userId),HttpStatus.OK);
 
     }
 }

@@ -1,6 +1,7 @@
 package com.ecom.app.service;
 
 import com.ecom.app.dto.CartItemRequest;
+import com.ecom.app.dto.ProductResponse;
 import com.ecom.app.model.CartItem;
 import com.ecom.app.model.Product;
 import com.ecom.app.model.User;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -92,4 +94,16 @@ public class CartService {
 
         return false;
     }
+
+    //Implementing method to get all cart item for a user
+    public List<CartItem> fetchAllCartItems(String userId) {
+
+        return userRepository.findById(Long.valueOf(userId))
+                .map(cartRepository::findAllByUser)
+                .orElseGet(List::of);
+
+
+    }
+
+
 }
