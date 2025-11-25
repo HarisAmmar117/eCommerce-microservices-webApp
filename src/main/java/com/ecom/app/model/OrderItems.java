@@ -2,6 +2,7 @@ package com.ecom.app.model;
 
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import java.math.BigDecimal;
 @Data
 @Entity
 @NoArgsConstructor
+@AllArgsConstructor
 public class OrderItems {
 
     @Id
@@ -26,4 +28,6 @@ public class OrderItems {
     @ManyToOne
     @JoinColumn(name = "order_id",nullable = false)
     private Order order;
+
+
 }
