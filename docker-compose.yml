@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:14
-    container_name: postgres_container
+    container_name: postgres
     environment:
       POSTGRES_USER: user123
       POSTGRES_PASSWORD: pass123
@@ -10,6 +10,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/data/postgres
+      - ./init-multi-db.sql:/docker-entrypoint-initdb.d/init.sql
+
     networks:
       - backend
     restart: unless-stopped
@@ -28,6 +30,19 @@ services:
     networks:
       - backend
     restart: unless-stopped
+
+  # mongodb:
+  #   image: mongo:7
+  #   container_name: mongodb
+  #   ports:
+  #     - "27017:27017"
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: mongo
+  #     MONGO_INITDB_ROOT_PASSWORD: mongo
+  #   networks:
+  #     - backend
+  #   restart: unless-stopped
+
 
   keycloak:
     container_name: keycloak
@@ -71,20 +86,167 @@ services:
       - backend
 
 
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - backend
+    restart: unless-stopped
 
+  config-server:
+    build: ./configserver
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    environment:
+      - SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS=/config
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - RABBITMQ_VHOST=${RABBITMQ_VHOST}
 
-#  rabbitmq:
-#    image: rabbitmq:4-management
-#    container_name: rabbitmq
+    volumes:
+      - ./configserver/src/main/resources/config:/config
+    networks:
+      - backend
+
+  eureka:
+    build: ./eureka
+    container_name: eureka
+    ports:
+      - "8761:8761"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  gateway-service:
+    build: ./gateway
+    container_name: gateway-service
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+    depends_on:
+      - rabbitmq
+      - eureka
+      - keycloak
+      - config-server
+    networks:
+      - backend
+
+  user-service:
+    build: ./user
+    container_name: user-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - MONGO_URL=${MONGO_URL}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - RABBITMQ_VHOST=${RABBITMQ_VHOST}
+
+    depends_on:
+      - rabbitmq
+      - eureka
+      - keycloak
+      - config-server
+    networks:
+      - backend
+
+  product-service:
+    build: ./product
+    container_name: product-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - RABBITMQ_VHOST=${RABBITMQ_VHOST}
+
+    depends_on:
+      - postgres
+      - rabbitmq
+      - eureka
+      - keycloak
+      - config-server
+    networks:
+      - backend
+
+  order-service:
+    build: ./order
+    container_name: order-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - RABBITMQ_VHOST=${RABBITMQ_VHOST}
+
+    depends_on:
+      - postgres
+      - rabbitmq
+      - eureka
+      - keycloak
+      - config-server
+    networks:
+      - backend
+
+#  notification-service:
+#    build: ./notification
+#    container_name: notification-service
 #    ports:
-#      - "5672:5672"
-#      - "15672:15672"
+#      - "8084:8084"
 #    environment:
-#      RABBITMQ_DEFAULT_USER: guest
-#      RABBITMQ_DEFAULT_PASS: guest
+#      - SPRING_PROFILES_ACTIVE=docker
+#      - DB_USER=${DB_USER}
+#      - DB_PASSWORD=${DB_PASSWORD}
+#      - RABBITMQ_HOST=${RABBITMQ_HOST}
+#      - RABBITMQ_PORT=${RABBITMQ_PORT}
+#      - RABBITMQ_USER=${RABBITMQ_USER}
+#      - RABBITMQ_PASS=${RABBITMQ_PASS}
+#      - RABBITMQ_VHOST=${RABBITMQ_VHOST}
+#
+#    depends_on:
+#      - rabbitmq
+#      - eureka
+#      - keycloak
+#      - config-server
 #    networks:
 #      - backend
-#    restart: unless-stopped
+
+
+
+
+
+
+
+
+
 
 
 
