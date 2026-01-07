@@ -31,17 +31,16 @@ services:
       - backend
     restart: unless-stopped
 
-  # mongodb:
-  #   image: mongo:7
-  #   container_name: mongodb
-  #   ports:
-  #     - "27017:27017"
-  #   environment:
-  #     MONGO_INITDB_ROOT_USERNAME: mongo
-  #     MONGO_INITDB_ROOT_PASSWORD: mongo
-  #   networks:
-  #     - backend
-  #   restart: unless-stopped
+  mongodb:
+    image: mongo:7
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    networks:
+      - backend
+    restart: unless-stopped
+
+
 
 
   keycloak:
@@ -75,7 +74,7 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
     ports:
@@ -102,6 +101,7 @@ services:
 
   config-server:
     build: ../../configserver
+#    image: ecom/config-server
     container_name: config-server
     ports:
       - "8888:8888"
@@ -119,7 +119,8 @@ services:
       - backend
 
   eureka:
-    build: ../../eureka
+#    build: ../../eureka
+    image: ecom/eureka
     container_name: eureka
     ports:
       - "8761:8761"
@@ -132,9 +133,10 @@ services:
       retries: 5
 
   gateway-service:
-    build: ../../gateway
+#    build: ../../gateway
+    image: ecom/gateway
     container_name: gateway-service
-    mem_limit: 700m
+#    mem_limit: 700m
     ports:
       - "8080:8080"
     environment:
@@ -147,13 +149,15 @@ services:
       - config-server
     networks:
       - backend
+    restart: on-failure
 
   user-service:
-    build: ../../user
+#    build: ../../user
     container_name: user-service
-    mem_limit: 700m
-    ports:
-      - "8082:8082"
+    image: ecom/user-service
+#    mem_limit: 700m
+#    ports:
+#      - "8082:8082"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - MONGO_URL=${MONGO_URL}
@@ -170,13 +174,15 @@ services:
       - config-server
     networks:
       - backend
+    restart: on-failure
 
   product-service:
-    build: ../../product
+#    build: ../../product
     container_name: product-service
-    mem_limit: 700m
-    ports:
-      - "8081:8081"
+    image: ecom/product-service
+#    mem_limit: 700m
+#    ports:
+#      - "8081:8081"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - DB_USER=${DB_USER}
@@ -195,13 +201,15 @@ services:
       - config-server
     networks:
       - backend
+    restart: on-failure
 
   order-service:
-    build: ../../order
+#    build: ../../order
     container_name: order-service
-    mem_limit: 700m
-    ports:
-      - "8083:8083"
+    image: ecom/order-service
+#    mem_limit: 700m
+#    ports:
+#      - "8083:8083"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - DB_USER=${DB_USER}
@@ -220,29 +228,25 @@ services:
       - config-server
     networks:
       - backend
+    restart: on-failure
 
-#  notification-service:
-#    build: ./notification
-#    container_name: notification-service
-#    ports:
-#      - "8084:8084"
-#    environment:
-#      - SPRING_PROFILES_ACTIVE=docker
-#      - DB_USER=${DB_USER}
-#      - DB_PASSWORD=${DB_PASSWORD}
-#      - RABBITMQ_HOST=${RABBITMQ_HOST}
-#      - RABBITMQ_PORT=${RABBITMQ_PORT}
-#      - RABBITMQ_USER=${RABBITMQ_USER}
-#      - RABBITMQ_PASS=${RABBITMQ_PASS}
-#      - RABBITMQ_VHOST=${RABBITMQ_VHOST}
-#
-#    depends_on:
-#      - rabbitmq
-#      - eureka
-#      - keycloak
-#      - config-server
-#    networks:
-#      - backend
+
+
+  notification-service:
+    build: ../../notification
+    container_name: notification-service
+#    image: ecom/notification-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - rabbitmq
+      - eureka
+      - keycloak
+      - config-server
+    networks:
+      - backend
+    restart: on-failure
+
 
 
 

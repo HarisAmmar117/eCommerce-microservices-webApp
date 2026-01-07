@@ -2,9 +2,10 @@
 
 cd ../..
 #Build jar for all services
-cd eureka && ./mvnw clean package -DskipTests && cd ..
-cd gateway && ./mvnw clean package -DskipTests && cd ..
-cd configserver && ./mvnw clean package -DskipTests && cd ..
-cd order && ./mvnw clean package -DskipTests && cd ..
-cd user && ./mvnw clean package -DskipTests && cd ..
-cd product && ./mvnw clean package -DskipTests && cd ..
+cd eureka && ./mvnw spring-boot:build-image -DskipTests && cd ..
+cd gateway && ./mvnw spring-boot:build-image -DskipTests && cd ..
+cd configserver && ./mvnw spring-boot:build-image -DskipTests && cd ..
+cd order && ./mvnw spring-boot:build-image -DskipTests && cd ..
+cd user && ./mvnw spring-boot:build-image -DskipTests && cd ..
+cd product && ./mvnw spring-boot:build-image -DskipTests && cd ..
+cd notification && ./mvnw spring-boot:build-image -DskipTests && cd ..
